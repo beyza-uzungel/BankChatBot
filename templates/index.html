@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banka Chatbotu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .sohbet-kapsayici {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .sohbet-baslik {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sohbet-kutu {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f1f3f4;
+            position: relative;
+        }
+
+        .mesaj {
+            display: flex;
+            margin-bottom: 12px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mesaj.bot {
+            justify-content: flex-start;
+        }
+
+        .mesaj.kullanici {
+            justify-content: flex-end;
+        }
+
+        .mesaj-içerik {
+            max-width: 75%;
+            padding: 12px;
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .mesaj.bot .mesaj-içerik {
+            background: #ffffff;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .mesaj.kullanici .mesaj-içerik {
+            background: #007bff;
+            color: white;
+            border: 1px solid #0056b3;
+        }
+
+        .sohbet-alt {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #ddd;
+            background-color: #ffffff;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .sohbet-alt input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .sohbet-alt input[type="text"]:focus {
+            border-color: #007bff;
+        }
+
+        .sohbet-alt button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sohbet-alt button:hover {
+            background-color: #0056b3;
+        }
+
+        .sohbet-alt button:active {
+            transform: scale(0.98);
+        }
+
+        .yaziyor-gösterge {
+            display: none;
+            position: absolute;
+            bottom: 12px;
+            left: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .yaziyor-gösterge span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 4px;
+            border-radius: 50%;
+            background-color: #007bff;
+            animation: blink 1.4s infinite both;
+        }
+
+        .yaziyor-gösterge span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .yaziyor-gösterge span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sohbet-kapsayici">
+        <div class="sohbet-baslik">
+            Banka Chatbotu
+        </div>
+        <div class="sohbet-kutu" id="sohbet-kutu">
+            <!-- Mesajlar buraya eklenecek -->
+            <div class="yaziyor-gösterge" id="yaziyor-gösterge">
+                <span></span><span></span><span></span>
+                <span> yazıyor...</span>
+            </div>
+        </div>
+        <div class="sohbet-alt">
+            <input type="text" id="metin" name="metin" placeholder="Sorunuzu buraya yazın..." />
+            <button id="gonder-düğmesi">Gönder</button>
+        </div>
+    </div>
+
+    <script>
+        const sohbetKutu = document.getElementById('sohbet-kutu');
+        const gonderDüğmesi = document.getElementById('gonder-düğmesi');
+        const metinGirdisi = document.getElementById('metin');
+        const yaziyorGösterge = document.getElementById('yaziyor-gösterge');
+
+        function mesajEkle(içerik, tür) {
+            const mesajDiv = document.createElement('div');
+            mesajDiv.classList.add('mesaj', tür);
+            const içerikDiv = document.createElement('div');
+            içerikDiv.classList.add('mesaj-içerik');
+            içerikDiv.textContent = içerik;
+            mesajDiv.appendChild(içerikDiv);
+            sohbetKutu.appendChild(mesajDiv);
+            sohbetKutu.scrollTop = sohbetKutu.scrollHeight; // Scroll to the bottom
+        }
+
+        async function cevapAl(metin) {
+            yaziyorGösterge.style.display = 'block';
+            try {
+                const yanıt = await fetch('/tahmin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: metin })
+                });
+
+                if (!yanıt.ok) {
+                    throw new Error('Ağ yanıtı uygun değil');
+                }
+
+                const sonuç = await yanıt.json();
+                const cevap = sonuç.yanit || sonuç.hata;
+                mesajEkle(cevap, 'bot');
+            } catch (hata) {
+                mesajEkle(`Hata: ${hata.message}`, 'bot');
+            } finally {
+                yaziyorGösterge.style.display = 'none';
+            }
+        }
+
+        gonderDüğmesi.addEventListener('click', async function() {
+            const metin = metinGirdisi.value.trim();
+            if (metin) {
+                mesajEkle(metin, 'kullanici');
+                metinGirdisi.value = '';
+                await cevapAl(metin);
+            }
+        });
+
+        metinGirdisi.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                gonderDüğmesi.click();
+            }
+        });
+    </script>
+</body>
+</html>
