@@ -1,5 +1,5 @@
 # Banka Chatbotu
-![Chatbot Görünümü](Ekran Görüntüsü%20(324).png)
+![Chatbot Görünümü](Ekran Görüntüsü (324).png)
 
 ## Açıklama
 Bu proje, banka işlemleri ve soruları için otomatik yanıtlar sağlayan bir chatbot uygulamasıdır. Python, Flask ve JavaScript kullanılarak geliştirilmiştir. Kullanıcıların sorularına hızlı ve doğru cevaplar sunan bu chatbot, veri işleme ve doğal dil işleme tekniklerini kullanarak etkili bir çözüm sunar.
